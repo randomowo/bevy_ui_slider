@@ -9,9 +9,9 @@ use bevy_ui_slider::prelude::{
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_plugin(SliderPlugin)
-        .add_startup_system(setup)
-        .add_systems((
+        .add_plugins(SliderPlugin)
+        .add_systems(Startup, setup)
+        .add_systems(Update, (
             update_slider::<RegularSlider, RegularSliderOutput>,
             update_slider::<SteppedSlider, SteppedSliderOutput>,
             update_slider_handle_color,
@@ -44,7 +44,8 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands
         .spawn(NodeBundle {
             style: Style {
-                size: Size::new(Val::Percent(100.), Val::Percent(100.)),
+                width: Val::Percent(100.),
+                height: Val::Percent(100.),
                 flex_direction: FlexDirection::Column,
                 justify_content: JustifyContent::Center,
                 align_items: AlignItems::Center,
@@ -71,7 +72,8 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                             RegularSlider,
                             SliderBundle {
                                 style: Style {
-                                    size: Size::new(Val::Px(200.), Val::Px(20.)),
+                                    width: Val::Px(200.),
+                                    height: Val::Px(20.),
                                     margin: UiRect::bottom(Val::Px(15.)),
                                     ..default()
                                 },
@@ -83,7 +85,8 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                             // Adding the slider handle
                             parent.spawn(SliderHandleBundle {
                                 style: Style {
-                                    size: Size::new(Val::Px(15.), Val::Px(20.)),
+                                    width: Val::Px(15.),
+                                    height: Val::Px(20.),
                                     ..default()
                                 },
                                 background_color: DEFAULT_HANDLE_COLOR.into(),
@@ -120,7 +123,8 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                             SteppedSlider,
                             SliderBundle {
                                 style: Style {
-                                    size: Size::new(Val::Px(200.), Val::Px(20.)),
+                                    width: Val::Px(200.),
+                                    height: Val::Px(20.),
                                     margin: UiRect::bottom(Val::Px(15.)),
                                     ..default()
                                 },
@@ -133,7 +137,8 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                             // Adding the slider handle
                             parent.spawn(SliderHandleBundle {
                                 style: Style {
-                                    size: Size::new(Val::Px(15.), Val::Px(20.)),
+                                    width: Val::Px(15.),
+                                    height: Val::Px(20.),
                                     ..default()
                                 },
                                 background_color: DEFAULT_HANDLE_COLOR.into(),
@@ -172,7 +177,7 @@ fn update_slider_handle_color(
     for (slider_interaction, slider_children) in slider_query.iter() {
         for child in slider_children.iter() {
             if let Ok(mut handle_color) = slider_handle_query.get_mut(*child) {
-                handle_color.0 = if *slider_interaction == Interaction::Clicked {
+                handle_color.0 = if *slider_interaction == Interaction::Pressed {
                     DRAGGED_HANDLE_COLOR
                 } else {
                     DEFAULT_HANDLE_COLOR

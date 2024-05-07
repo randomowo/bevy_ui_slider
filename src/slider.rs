@@ -124,7 +124,8 @@ pub struct SliderBundle {
     /// Describes the visibility properties of the node
     pub visibility: Visibility,
     /// Algorithmically-computed indication of whether an entity is visible and should be extracted for rendering
-    pub computed_visibility: ComputedVisibility,
+    pub inherited_visibility: InheritedVisibility,
+    pub view_visibility: ViewVisibility,
 }
 
 #[derive(Bundle, Clone, Debug)]
@@ -157,7 +158,8 @@ pub struct SliderHandleBundle {
     /// Describes the visibility properties of the node
     pub visibility: Visibility,
     /// Algorithmically-computed indication of whether an entity is visible and should be extracted for rendering
-    pub computed_visibility: ComputedVisibility,
+    pub inherited_visibility: InheritedVisibility,
+    pub view_visibility: ViewVisibility,
 }
 
 impl Default for SliderHandleBundle {
@@ -172,7 +174,8 @@ impl Default for SliderHandleBundle {
             transform: Transform::default(),
             global_transform: GlobalTransform::default(),
             visibility: Visibility::default(),
-            computed_visibility: ComputedVisibility::default(),
+            inherited_visibility: InheritedVisibility::default(),
+            view_visibility: ViewVisibility::default(),
         }
     }
 }
@@ -189,13 +192,6 @@ pub enum SliderValueError {
 #[reflect(Component, Default)]
 pub struct SliderHandle;
 
-#[derive(Debug, Hash, PartialEq, Eq, Clone, SystemSet)]
-#[system_set(base)]
-pub enum SliderUpdateSet {
-    BeforeUpdate,
-    AfterUpdate,
-}
-
 /// System for updating slider value based on the user input
 pub fn update_slider_value(
     mut slider_query: Query<(
@@ -208,7 +204,7 @@ pub fn update_slider_value(
     slider_handle_query: Query<&Node, With<SliderHandle>>,
 ) {
     for (mut slider, interaction, cursor_position, node, children) in slider_query.iter_mut() {
-        if *interaction == Interaction::Clicked {
+        if *interaction == Interaction::Pressed {
             let max = slider.max();
             let min = slider.min();
 
@@ -254,7 +250,7 @@ pub fn update_slider_handle(
             {
                 let slider_width = slider_node.size().x - slider_handle_node.size().x;
 
-                slider_handle_style.position.left = Val::Px(
+                slider_handle_style.left = Val::Px(
                     (slider.value() - slider.min()) * slider_width / (slider.max() - slider.min()),
                 );
             }
@@ -268,13 +264,7 @@ pub struct SliderPlugin;
 
 impl Plugin for SliderPlugin {
     fn build(&self, app: &mut App) {
-        app.configure_set(SliderUpdateSet::BeforeUpdate.before(CoreSet::Update))
-            .configure_set(SliderUpdateSet::AfterUpdate.after(CoreSet::Update))
-            .add_systems(
-                (update_slider_value, update_slider_handle)
-                    .chain()
-                    .in_base_set(SliderUpdateSet::BeforeUpdate),
-            );
+        app.add_systems(PreUpdate, (update_slider_value, update_slider_handle).chain());
     }
 }
 
