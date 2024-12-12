@@ -96,7 +96,7 @@ impl Slider {
 #[derive(Bundle, Clone, Debug, Default)]
 pub struct SliderBundle {
     /// Describes the size of the node
-    pub node: Node,
+    pub node: ComputedNode,
     /// Slider specific values
     pub slider: Slider,
     /// Describes the cursor position relative to the slider node
@@ -104,13 +104,11 @@ pub struct SliderBundle {
     /// Describes whether and how the slider has been interacted with by the input
     pub interaction: Interaction,
     /// Describes the style including flexbox settings
-    pub style: Style,
+    pub style: Node,
     /// The background color, which serves as a "fill" for this node
     ///
     /// When combined with `UiImage`, tints the provided image.
     pub background_color: BackgroundColor,
-    /// The image of the node
-    pub image: UiImage,
     /// The transform of the node
     ///
     /// This field is automatically managed by the UI layout system.
@@ -131,20 +129,18 @@ pub struct SliderBundle {
 #[derive(Bundle, Clone, Debug)]
 pub struct SliderHandleBundle {
     /// Describes the size of the node
-    pub node: Node,
+    pub node: ComputedNode,
     /// Marker component that signals this node is a slider handle
     pub slider_handle: SliderHandle,
     /// Describes the style including flexbox settings
     /// The Slider parent is responsible for managing the position field, all user-made changes will be overwritten.
-    pub style: Style,
+    pub style: Node,
     /// Whether this node should block interaction with lower nodes
     pub focus_policy: FocusPolicy,
     /// The background color, which serves as a "fill" for this node
     ///
     /// When combined with `UiImage`, tints the provided image.
     pub background_color: BackgroundColor,
-    /// The image of the node
-    pub image: UiImage,
     /// The transform of the node
     ///
     /// This field is automatically managed by the UI layout system.
@@ -165,12 +161,11 @@ pub struct SliderHandleBundle {
 impl Default for SliderHandleBundle {
     fn default() -> Self {
         Self {
-            node: Node::default(),
+            node: ComputedNode::default(),
             slider_handle: SliderHandle,
-            style: Style::default(),
+            style: Node::default(),
             focus_policy: FocusPolicy::Pass,
             background_color: BackgroundColor::default(),
-            image: UiImage::default(),
             transform: Transform::default(),
             global_transform: GlobalTransform::default(),
             visibility: Visibility::default(),
@@ -198,10 +193,10 @@ pub fn update_slider_value(
         &mut Slider,
         &Interaction,
         &RelativeCursorPosition,
-        &Node,
+        &ComputedNode,
         Option<&Children>,
     )>,
-    slider_handle_query: Query<&Node, With<SliderHandle>>,
+    slider_handle_query: Query<&ComputedNode, With<SliderHandle>>,
 ) {
     for (mut slider, interaction, cursor_position, node, children) in slider_query.iter_mut() {
         if *interaction == Interaction::Pressed {
@@ -240,8 +235,8 @@ pub fn update_slider_value(
 
 /// System for updating the slider handle position based on the parent slider value
 pub fn update_slider_handle(
-    slider_query: Query<(&Slider, &Node, &Children)>,
-    mut slider_handles_query: Query<(&Node, &mut Style), With<SliderHandle>>,
+    slider_query: Query<(&Slider, &ComputedNode, &Children)>,
+    mut slider_handles_query: Query<(&ComputedNode, &mut Node), With<SliderHandle>>,
 ) {
     for (slider, slider_node, slider_children) in slider_query.iter() {
         for child in slider_children {
