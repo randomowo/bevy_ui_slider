@@ -237,6 +237,7 @@ pub fn update_slider_value(
 pub fn update_slider_handle(
     slider_query: Query<(&Slider, &ComputedNode, &Children)>,
     mut slider_handles_query: Query<(&ComputedNode, &mut Node), With<SliderHandle>>,
+    window: Single<&Window>,
 ) {
     for (slider, slider_node, slider_children) in slider_query.iter() {
         for child in slider_children {
@@ -246,7 +247,9 @@ pub fn update_slider_handle(
                 let slider_width = slider_node.size().x - slider_handle_node.size().x;
 
                 slider_handle_style.left = Val::Px(
-                    (slider.value() - slider.min()) * slider_width / (slider.max() - slider.min()),
+                    ((slider.value() - slider.min()) * slider_width)
+                        / (slider.max() - slider.min())
+                        / window.resolution.scale_factor(),
                 );
             }
         }
@@ -259,7 +262,10 @@ pub struct SliderPlugin;
 
 impl Plugin for SliderPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(PreUpdate, (update_slider_value, update_slider_handle).chain());
+        app.add_systems(
+            PreUpdate,
+            (update_slider_value, update_slider_handle).chain(),
+        );
     }
 }
 
