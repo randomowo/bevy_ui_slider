@@ -209,7 +209,7 @@ pub fn update_slider_value(
                 // Get the slider handle node
                 let slider_handle_node = if let Some(children) = children {
                     children.iter().find_map(|child| {
-                        if let Ok(node) = slider_handle_query.get(*child) {
+                        if let Ok(node) = slider_handle_query.get(child) {
                             Some(node)
                         } else {
                             None
